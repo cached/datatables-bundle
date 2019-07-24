@@ -16,17 +16,34 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractFilter
 {
+    /**
+     * @var string
+     */
     protected $name;
 
+    /**
+     * @var string
+     */
     protected $type;
 
-    /** @var string */
+    /**
+     * @var string
+     */
+    protected $label;
+
+    /**
+     * @var string 
+     */
     protected $template_html;
 
-    /** @var string */
+    /** 
+     * @var string 
+     */
     protected $template_js;
 
-    /** @var string */
+    /** 
+     * @var string 
+     */
     protected $operator;
 
     public function __construct(array $options)
@@ -37,6 +54,30 @@ abstract class AbstractFilter
         foreach ($resolver->resolve($options) as $key => $value) {
             $this->$key = $value;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLabel()
+    {
+        return $this->label;
     }
 
     /**

@@ -20,7 +20,6 @@ function addOrUpdateUriParameter(uri, parameter, value) {
 }
 
 /**
- * 
  * @param {*} string 
  */
 function normalizeAmpersand(string) {
