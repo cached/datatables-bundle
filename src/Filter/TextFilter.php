@@ -19,21 +19,6 @@ class TextFilter extends AbstractFilter
     /** @var string */
     protected $placeholder;
 
-    protected function configureOptions(OptionsResolver $resolver)
-    {
-        parent::configureOptions($resolver);
-
-        $resolver
-            ->setDefaults([
-                'template_html' => '@DataTables/Filter/text.html.twig',
-                'template_js' => '@DataTables/Filter/text.js.twig',
-                'placeholder' => null,
-            ])
-            ->setAllowedTypes('placeholder', ['null', 'string']);
-
-        return $this;
-    }
-
     /**
      * @return string
      */
@@ -49,5 +34,21 @@ class TextFilter extends AbstractFilter
     public function isValidValue($value): bool
     {
         return true;
+    }
+
+    protected function configureOptions(OptionsResolver $resolver)
+    {
+        parent::configureOptions($resolver);
+
+        $resolver
+            ->setDefaults([
+                'type' => 'text',
+                'template_html' => '@DataTables/Filter/text.html.twig',
+                'template_js' => '@DataTables/Filter/text.js.twig',
+                'placeholder' => null,
+            ])
+            ->setAllowedTypes('placeholder', ['null', 'string']);
+
+        return $this;
     }
 }

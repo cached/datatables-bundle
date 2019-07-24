@@ -16,6 +16,10 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractFilter
 {
+    protected $name;
+
+    protected $type;
+
     /** @var string */
     protected $template_html;
 
@@ -25,10 +29,7 @@ abstract class AbstractFilter
     /** @var string */
     protected $operator;
 
-    /**
-     * @param array $options
-     */
-    public function set(array $options)
+    public function __construct(array $options)
     {
         $resolver = new OptionsResolver();
         $this->configureOptions($resolver);
@@ -36,21 +37,6 @@ abstract class AbstractFilter
         foreach ($resolver->resolve($options) as $key => $value) {
             $this->$key = $value;
         }
-    }
-
-    /**
-     * @param OptionsResolver $resolver
-     * @return $this
-     */
-    protected function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'template_html' => null,
-            'template_js' => null,
-            'operator' => 'CONTAINS',
-        ]);
-
-        return $this;
     }
 
     /**
@@ -82,4 +68,28 @@ abstract class AbstractFilter
      * @return bool
      */
     abstract public function isValidValue($value): bool;
+
+    
+    /**
+     * @param OptionsResolver $resolver
+     * @return $this
+     */
+    protected function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver
+            ->setDefaults([
+                'type' => null,
+                'name' => null,
+                'label' => null,
+                'template_html' => null,
+                'template_js' => null,
+                'operator' => 'CONTAINS',
+            ])
+            ->setAllowedTypes('type', ['null', 'string'])
+            ->setAllowedTypes('name', ['null', 'string'])
+            ->setAllowedTypes('label', ['null', 'string'])
+        ;
+
+        return $this;
+    }
 }
