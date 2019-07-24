@@ -15,6 +15,7 @@ namespace Omines\DataTablesBundle;
 use Omines\DataTablesBundle\Adapter\AdapterInterface;
 use Omines\DataTablesBundle\Adapter\ResultSetInterface;
 use Omines\DataTablesBundle\Column\AbstractColumn;
+use Omines\DataTablesBundle\Filter\AbstractFilter;
 use Omines\DataTablesBundle\DependencyInjection\Instantiator;
 use Omines\DataTablesBundle\Exception\InvalidArgumentException;
 use Omines\DataTablesBundle\Exception\InvalidConfigurationException;
@@ -65,6 +66,16 @@ class DataTable
 
     /** @var array<string, AbstractColumn> */
     protected $columnsByName = [];
+
+    /**
+     * @var AbstractFilter[]
+     */
+    protected $globalFilters = [];
+
+    /**
+     * @var array<string, AbstractFilter>
+     */
+    protected $globalFiltersByName = [];
 
     /** @var EventDispatcherInterface */
     protected $eventDispatcher;
@@ -143,6 +154,21 @@ class DataTable
         $this->columnsByName[$name] = $column;
 
         return $this;
+    }
+
+    /**
+     * @param AbstractFilter $filter
+     */
+    public function addGlobalFilter(AbstractFilter $filter)
+    {
+        $name = $filter->getName();
+
+        if (isset($this->globalFiltersByName[$name])) {
+            throw new InvalidArgumentException(sprintf('There already is a global filter with name "%s"', $name));
+        }
+
+        $this->globalFilters[] = $filter;
+        $this->globalFiltersByName[$name] = $filter;
     }
 
     /**
@@ -227,6 +253,27 @@ class DataTable
     public function getColumns(): array
     {
         return $this->columns;
+    }
+
+    /**
+     * @param string $name
+     * @return AbstractFilter
+     */
+    public function getGlobalFilterByName(string $name): AbstractFilter
+    {
+        if (!isset($this->globalFilters[$name])) {
+            throw new InvalidArgumentException(sprintf('There is no global filter named "%s', $name));
+        }
+
+        return $this->globalFilters[$name];
+    }
+
+    /**
+     * @return AbstractFilter[]
+     */
+    public function getGlobalFilters(): array
+    {
+        return $this->globalFilters;
     }
 
     /**
