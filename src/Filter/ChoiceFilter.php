@@ -32,8 +32,8 @@ class ChoiceFilter extends AbstractFilter
 
         $resolver
             ->setDefaults([
-                'template_html' => '@DataTables/Filter/select.html.twig',
-                'template_js' => '@DataTables/Filter/select.js.twig',
+                'template_html' => '@DataTables/filters/select.html.twig',
+                'template_js' => '@DataTables/filters/select.js.twig',
                 'placeholder' => null,
                 'choices' => [],
             ])

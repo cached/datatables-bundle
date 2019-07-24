@@ -158,6 +158,7 @@ class DataTable
 
     /**
      * @param AbstractFilter $filter
+     * @return $this
      */
     public function addGlobalFilter(AbstractFilter $filter)
     {
@@ -169,6 +170,8 @@ class DataTable
 
         $this->globalFilters[] = $filter;
         $this->globalFiltersByName[$name] = $filter;
+
+        return $this;
     }
 
     /**
