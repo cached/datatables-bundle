@@ -114,7 +114,7 @@
     $.fn.initDataTables.defaults = {
         method: 'POST',
         state: 'fragment',
-        url: window.location.origin + window.location.pathname
+        url: window.location.origin + window.location.pathname + window.location.search
     };
 
     /**
