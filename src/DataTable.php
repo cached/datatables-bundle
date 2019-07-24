@@ -286,6 +286,14 @@ class DataTable
     }
 
     /**
+     * @return array
+     */
+    public function getTemplateParams()
+    {
+        return $this->templateParams;
+    }
+
+    /**
      * @return bool
      */
     public function isCallback(): bool
