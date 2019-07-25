@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Omines\DataTablesBundle;
 
 use Omines\DataTablesBundle\Column\AbstractColumn;
+use Omines\DataTablesBundle\Filter\AbstractFilter;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
@@ -22,31 +23,49 @@ use Symfony\Component\HttpFoundation\ParameterBag;
  */
 class DataTableState
 {
-    /** @var DataTable */
+    /**
+     * @var DataTable
+     */
     private $dataTable;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     private $draw = 0;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     private $start = 0;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     private $length = -1;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $globalSearch = '';
 
-    /** @var array */
-    private $searchColumns = [];
+    /**
+     * @var array
+     */
+    private $filters = [];
 
-    /** @var array */
+    /**
+     * @var array
+     */
     private $orderBy = [];
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
     private $isInitial = false;
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
     private $isCallback = false;
 
     /**
@@ -96,7 +115,7 @@ class DataTableState
         $this->setGlobalSearch($search['value'] ?? $this->globalSearch);
 
         $this->handleOrderBy($parameters);
-        $this->handleSearch($parameters);
+        $this->handleFilter($parameters);
     }
 
     /**
@@ -112,18 +131,17 @@ class DataTableState
             }
         }
     }
-
+    
     /**
      * @param ParameterBag $parameters
      */
-    private function handleSearch(ParameterBag $parameters)
+    private function handleFilter(ParameterBag $parameters)
     {
-        foreach ($parameters->get('columns', []) as $key => $search) {
-            $column = $this->dataTable->getColumn((int) $key);
-            $value = $this->isInitial ? $search : $search['search']['value'];
-
-            if ($column->isSearchable() && !empty($value) && null !== $column->getFilter() && $column->getFilter()->isValidValue($value)) {
-                $this->setColumnSearch($column, $value);
+        foreach ($this->dataTable->getFilters() as $filter) {
+            if ($parameters->has($filter->getName())) {
+                $value = $parameters->get($filter->getName());
+                
+                $this->setFilter($filter, $value);
             }
         }
     }
@@ -249,24 +267,22 @@ class DataTableState
     }
 
     /**
-     * Returns an array of column-level searches.
      * @return array
      */
-    public function getSearchColumns(): array
+    public function getFilter()
     {
-        return $this->searchColumns;
+        return $this->filters;
     }
 
     /**
-     * @param AbstractColumn $column
+     * @param AbstractFilter $filter
      * @param string $search
-     * @param bool $isRegex
      * @return $this
      */
-    public function setColumnSearch(AbstractColumn $column, string $search, bool $isRegex = false): self
+    public function setFilter(AbstractFilter $filter, string $search)
     {
-        $this->searchColumns[$column->getName()] = ['column' => $column, 'search' => $search, 'regex' => $isRegex];
-
+        $this->filters[$filter->getName()] = ['filter' => $filter, 'search' => $search];
+        
         return $this;
     }
 }

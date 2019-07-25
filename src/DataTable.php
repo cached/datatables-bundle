@@ -58,62 +58,94 @@ class DataTable
     const SORT_ASCENDING = 'asc';
     const SORT_DESCENDING = 'desc';
 
-    /** @var AdapterInterface */
+    /**
+     * @var AdapterInterface
+     */
     protected $adapter;
 
-    /** @var AbstractColumn[] */
+    /**
+     * @var AbstractColumn[]
+     */
     protected $columns = [];
 
-    /** @var array<string, AbstractColumn> */
+    /**
+     * @var array<string, AbstractColumn>
+     */
     protected $columnsByName = [];
 
     /**
      * @var AbstractFilter[]
      */
-    protected $globalFilters = [];
+    protected $filters = [];
 
     /**
      * @var array<string, AbstractFilter>
      */
-    protected $globalFiltersByName = [];
+    protected $filtersByName = [];
 
-    /** @var EventDispatcherInterface */
+    /**
+     * @var EventDispatcherInterface
+     */
     protected $eventDispatcher;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $method = Request::METHOD_POST;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $options;
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
     protected $languageFromCDN = true;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $name = 'dt';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $persistState = 'fragment';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $template = self::DEFAULT_TEMPLATE;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $templateParams = [];
 
-    /** @var callable */
+    /**
+     * @var callable
+     */
     protected $transformer;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $translationDomain = 'messages';
 
-    /** @var DataTableRendererInterface */
+    /**
+     * @var DataTableRendererInterface
+     */
     private $renderer;
 
-    /** @var DataTableState */
+    /**
+     * @var DataTableState
+     */
     private $state;
 
-    /** @var Instantiator */
+    /**
+     * @var Instantiator
+     */
     private $instantiator;
 
     /**
@@ -160,16 +192,16 @@ class DataTable
      * @param AbstractFilter $filter
      * @return $this
      */
-    public function addGlobalFilter(AbstractFilter $filter)
+    public function addFilter(AbstractFilter $filter)
     {
         $name = $filter->getName();
 
-        if (isset($this->globalFiltersByName[$name])) {
-            throw new InvalidArgumentException(sprintf('There already is a global filter with name "%s"', $name));
+        if (isset($this->filtersByName[$name])) {
+            throw new InvalidArgumentException(sprintf('There already is a filter with name "%s"', $name));
         }
 
-        $this->globalFilters[] = $filter;
-        $this->globalFiltersByName[$name] = $filter;
+        $this->filters[] = $filter;
+        $this->filtersByName[$name] = $filter;
 
         return $this;
     }
@@ -262,21 +294,29 @@ class DataTable
      * @param string $name
      * @return AbstractFilter
      */
-    public function getGlobalFilterByName(string $name): AbstractFilter
+    public function getFilterByName(string $name): AbstractFilter
     {
-        if (!isset($this->globalFilters[$name])) {
-            throw new InvalidArgumentException(sprintf('There is no global filter named "%s', $name));
+        if (!isset($this->filters[$name])) {
+            throw new InvalidArgumentException(sprintf('There is no filter named "%s', $name));
         }
 
-        return $this->globalFilters[$name];
+        return $this->filters[$name];
     }
 
     /**
      * @return AbstractFilter[]
      */
-    public function getGlobalFilters(): array
+    public function getFilters(): array
     {
-        return $this->globalFilters;
+        return $this->filters;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function hasFilters()
+    {
+        return (bool)count($his->filters);
     }
 
     /**

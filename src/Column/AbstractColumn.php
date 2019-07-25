@@ -120,7 +120,6 @@ abstract class AbstractColumn
                 'orderField' => null,
                 'searchable' => null,
                 'globalSearchable' => null,
-                'filter' => null,
                 'className' => null,
                 'render' => null,
                 'leftExpr' => null,
@@ -136,7 +135,6 @@ abstract class AbstractColumn
             ->setAllowedTypes('orderField', ['null', 'string'])
             ->setAllowedTypes('searchable', ['null', 'boolean'])
             ->setAllowedTypes('globalSearchable', ['null', 'boolean'])
-            ->setAllowedTypes('filter', ['null', 'array'])
             ->setAllowedTypes('className', ['null', 'string'])
             ->setAllowedTypes('render', ['null', 'string', 'callable'])
             ->setAllowedTypes('operator', ['string'])
@@ -218,15 +216,7 @@ abstract class AbstractColumn
     {
         return $this->options['orderable'] ?? !empty($this->getOrderField());
     }
-
-    /**
-     * @return AbstractFilter
-     */
-    public function getFilter()
-    {
-        return $this->options['filter'];
-    }
-
+    
     /**
      * @return string|null
      */
