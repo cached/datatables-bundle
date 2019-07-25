@@ -13,7 +13,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 abstract class AbstractFilter
 {
     /**
-     * @var
+     * @var array
      */
     protected $options;
 

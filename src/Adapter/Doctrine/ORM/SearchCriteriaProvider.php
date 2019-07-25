@@ -50,7 +50,7 @@ class SearchCriteriaProvider implements QueryBuilderProcessorInterface
                 if (is_callable($filter->getCriteria())) {
                     call_user_func($filter->getCriteria(), $queryBuilder, $search);
                 } else {
-                    $search = $queryBuilder->expr()->literal($column->getRightExpr($search));
+                    $search = $queryBuilder->expr()->literal($filter->getRightExpr($search));
                     
                     $criteria = new Comparison($filter->getLeftExpr(), $filter->getOperator(), $search);
 
