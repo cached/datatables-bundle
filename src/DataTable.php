@@ -316,7 +316,7 @@ class DataTable
      */
     public function hasFilters()
     {
-        return (bool)count($his->filters);
+        return (bool)count($this->filters);
     }
 
     /**
