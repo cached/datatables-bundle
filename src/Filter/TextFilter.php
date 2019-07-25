@@ -14,6 +14,10 @@ namespace Omines\DataTablesBundle\Filter;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Class TextFilter
+ * @package Omines\DataTablesBundle\Filter
+ */
 class TextFilter extends AbstractFilter
 {
     /**
@@ -24,6 +28,10 @@ class TextFilter extends AbstractFilter
         return $this->options['placeholder'];
     }
 
+    /**
+     * @param OptionsResolver $resolver
+     * @return $this|AbstractFilter
+     */
     protected function configureOptions(OptionsResolver $resolver)
     {
         parent::configureOptions($resolver);

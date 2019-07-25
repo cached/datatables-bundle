@@ -1,23 +1,26 @@
 <?php
 
-/*
- * Symfony DataTables Bundle
- * (c) Omines Internetbureau B.V. - https://omines.nl/
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Omines\DataTablesBundle\Filter;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Class AbstractFilter
+ * @package Omines\DataTablesBundle\Filter
+ */
 abstract class AbstractFilter
 {
+    /**
+     * @var
+     */
     protected $options;
 
+    /**
+     * AbstractFilter constructor.
+     * @param array $options
+     */
     public function __construct(array $options)
     {
         $resolver = new OptionsResolver();
@@ -117,12 +120,6 @@ abstract class AbstractFilter
     {
         return $this->options['criteria'];
     }
-
-    /**
-     * @param mixed $value
-     * @return bool
-     */
-    abstract public function isValidValue($value): bool;
 
     /**
      * @param OptionsResolver $resolver
