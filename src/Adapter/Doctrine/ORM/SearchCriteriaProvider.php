@@ -71,8 +71,13 @@ class SearchCriteriaProvider implements QueryBuilderProcessorInterface
             $comparisons = $expr->orX();
             foreach ($state->getDataTable()->getColumns() as $column) {
                 if ($column->isGlobalSearchable() && !empty($column->getField()) && $column->isValidForSearch($globalSearch)) {
-                    $comparisons->add(new Comparison($column->getLeftExpr(), $column->getOperator(),
-                        $expr->literal($column->getRightExpr($globalSearch))));
+                    $comparisons->add(
+                        new Comparison(
+                            $column->getLeftExpr(),
+                            $column->getOperator(),
+                            $expr->literal($column->getRightExpr($globalSearch))
+                        )
+                    );
                 }
             }
             $queryBuilder->andWhere($comparisons);
