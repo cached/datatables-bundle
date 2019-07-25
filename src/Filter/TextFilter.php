@@ -47,7 +47,8 @@ class TextFilter extends AbstractFilter
                 'template_js' => '@DataTables/filters/text.js.twig',
                 'placeholder' => null,
             ])
-            ->setAllowedTypes('placeholder', ['null', 'string']);
+            ->setAllowedTypes('placeholder', ['null', 'string'])
+        ;
 
         return $this;
     }
