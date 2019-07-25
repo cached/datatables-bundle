@@ -22,7 +22,9 @@ class DateFilter extends TextFilter
 
         $resolver
             ->setDefaults([
-                'template_html' => '@DataTables/filters/date.html.twig'
+                'template_html' => '@DataTables/filters/date.html.twig',
+                'operator' => '=',
+                'rightExpr' => null
             ])
         ;
 

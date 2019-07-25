@@ -22,7 +22,9 @@ class DateRangeFilter extends DateFilter
 
         $resolver
             ->setDefaults([
-                'template_html' => '@DataTables/filters/date_range.html.twig'
+                'template_html' => '@DataTables/filters/date_range.html.twig',
+                'operator' => '=',
+                'rightExpr' => null
             ])
         ;
 
