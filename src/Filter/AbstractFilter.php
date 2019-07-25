@@ -16,44 +16,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractFilter
 {
-    /**
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * @var string
-     */
-    protected $type;
-
-    /**
-     * @var string
-     */
-    protected $label;
-
-    /**
-     * @var string 
-     */
-    protected $template_html;
-
-    /** 
-     * @var string 
-     */
-    protected $template_js;
-
-    /** 
-     * @var string 
-     */
-    protected $operator;
+    protected $options;
 
     public function __construct(array $options)
     {
         $resolver = new OptionsResolver();
         $this->configureOptions($resolver);
 
-        foreach ($resolver->resolve($options) as $key => $value) {
-            $this->$key = $value;
-        }
+        $this->options = $resolver->resolve($options);
     }
 
     /**
@@ -61,7 +31,7 @@ abstract class AbstractFilter
      */
     public function getName()
     {
-        return $this->name;
+        return $this->options['name'];
     }
 
     /**
@@ -69,7 +39,7 @@ abstract class AbstractFilter
      */
     public function getType()
     {
-        return $this->type;
+        return $this->options['type'];
     }
 
     /**
@@ -77,7 +47,7 @@ abstract class AbstractFilter
      */
     public function getLabel()
     {
-        return $this->label;
+        return $this->options['label'];
     }
 
     /**
@@ -85,15 +55,33 @@ abstract class AbstractFilter
      */
     public function getTemplateHtml()
     {
-        return $this->template_html;
+        return $this->options['template_html'];
     }
 
     /**
      * @return string
      */
-    public function getTemplateJs()
+    public function getField()
     {
-        return $this->template_js;
+        return $this->options['field'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getLeftExpr()
+    {
+        $leftExpr = $this->options['leftExpr'];
+        
+        if ($leftExpr === nul) {
+            return $this->getField();
+        }
+
+        if (is_callable($leftExpr)) {
+            return call_user_func($leftExpr, $this->getField());
+        }
+
+        return $leftExpr;
     }
 
     /**
@@ -101,7 +89,25 @@ abstract class AbstractFilter
      */
     public function getOperator()
     {
-        return $this->operator;
+        return $this->options['operator'];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRightExpr($value)
+    {
+        $rightExpr = $this->options['rightExpr'];
+        
+        if ($rightExpr === null) {
+            return $value;
+        }
+
+        if (is_callable($rightExpr)) {
+            return call_user_func($rightExpr, $value);
+        }
+
+        return $rightExpr;
     }
 
     /**
@@ -109,7 +115,7 @@ abstract class AbstractFilter
      */
     public function getCriteria()
     {
-        return $this->criteria;
+        return $this->options['criteria'];
     }
 
     /**
@@ -118,7 +124,6 @@ abstract class AbstractFilter
      */
     abstract public function isValidValue($value): bool;
 
-    
     /**
      * @param OptionsResolver $resolver
      * @return $this
@@ -131,13 +136,18 @@ abstract class AbstractFilter
                 'name' => null,
                 'label' => null,
                 'template_html' => null,
-                'template_js' => null,
+                'field' => null,
+                'leftExpr' => null,
                 'operator' => '=',
+                'rightExpr' => null,
                 'criteria' => null,
             ])
             ->setAllowedTypes('type', ['null', 'string'])
             ->setAllowedTypes('name', ['null', 'string'])
             ->setAllowedTypes('label', ['null', 'string'])
+            ->setAllowedTypes('field', ['null', 'string'])
+            ->setAllowedTypes('leftExpr', ['null', 'string', 'callable'])
+            ->setAllowedTypes('rightExpr', ['null', 'string', 'callable'])
             ->setAllowedTypes('criteria', ['null', 'callable'])
         ;
 

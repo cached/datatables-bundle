@@ -16,18 +16,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ChoiceFilter extends AbstractFilter
 {
-    /** @var string */
-    protected $placeholder;
-
-    /** @var array */
-    protected $choices = [];
-
     /**
      * @return string
      */
     public function getPlaceholder()
     {
-        return $this->placeholder;
+        return $this->options['placeholder'];
     }
 
     /**
@@ -35,7 +29,7 @@ class ChoiceFilter extends AbstractFilter
      */
     public function getChoices()
     {
-        return $this->choices;
+        return $this->options['choices'];
     }
 
     /**
@@ -58,7 +52,6 @@ class ChoiceFilter extends AbstractFilter
         $resolver
             ->setDefaults([
                 'template_html' => '@DataTables/filters/select.html.twig',
-                'template_js' => '@DataTables/filters/select.js.twig',
                 'placeholder' => null,
                 'choices' => [],
             ])

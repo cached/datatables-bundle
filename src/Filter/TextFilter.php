@@ -16,24 +16,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class TextFilter extends AbstractFilter
 {
-    /** @var string */
-    protected $placeholder;
-
     /**
      * @return string
      */
     public function getPlaceholder()
     {
-        return $this->placeholder;
-    }
-
-    /**
-     * @param $value
-     * @return bool
-     */
-    public function isValidValue($value): bool
-    {
-        return true;
+        return $this->options['placeholder'];
     }
 
     protected function configureOptions(OptionsResolver $resolver)
@@ -44,7 +32,6 @@ class TextFilter extends AbstractFilter
             ->setDefaults([
                 'type' => 'text',
                 'template_html' => '@DataTables/filters/text.html.twig',
-                'template_js' => '@DataTables/filters/text.js.twig',
                 'placeholder' => null,
             ])
             ->setAllowedTypes('placeholder', ['null', 'string'])
