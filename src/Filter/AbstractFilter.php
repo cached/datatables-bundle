@@ -105,6 +105,14 @@ abstract class AbstractFilter
     }
 
     /**
+     * @return callable|null
+     */
+    public function getCriteria()
+    {
+        return $this->criteria;
+    }
+
+    /**
      * @param mixed $value
      * @return bool
      */
@@ -125,10 +133,12 @@ abstract class AbstractFilter
                 'template_html' => null,
                 'template_js' => null,
                 'operator' => 'CONTAINS',
+                'criteria' => null,
             ])
             ->setAllowedTypes('type', ['null', 'string'])
             ->setAllowedTypes('name', ['null', 'string'])
             ->setAllowedTypes('label', ['null', 'string'])
+            ->setAllowedTypes('criteria', ['null', 'callable'])
         ;
 
         return $this;

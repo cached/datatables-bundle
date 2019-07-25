@@ -14,7 +14,7 @@ namespace Omines\DataTablesBundle\Adapter\Doctrine\ORM;
 
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\QueryBuilder;
-use Omines\DataTablesBundle\Column\AbstractColumn;
+use Omines\DataTablesBundle\Filter\AbstractFilter;
 use Omines\DataTablesBundle\DataTableState;
 
 /**
@@ -29,7 +29,7 @@ class SearchCriteriaProvider implements QueryBuilderProcessorInterface
      */
     public function process(QueryBuilder $queryBuilder, DataTableState $state)
     {
-        $this->processSearchColumns($queryBuilder, $state);
+        $this->processFilters($queryBuilder, $state);
         $this->processGlobalSearch($queryBuilder, $state);
     }
 
@@ -37,15 +37,24 @@ class SearchCriteriaProvider implements QueryBuilderProcessorInterface
      * @param QueryBuilder $queryBuilder
      * @param DataTableState $state
      */
-    private function processSearchColumns(QueryBuilder $queryBuilder, DataTableState $state)
+    private function processFilters(QueryBuilder $queryBuilder, DataTableState $state)
     {
-        foreach ($state->getSearchColumns() as $searchInfo) {
-            /** @var AbstractColumn $column */
-            $column = $searchInfo['column'];
-            $search = $searchInfo['search'];
+        foreach ($state->getFilters() as $filterInfo) {
+            /**
+             * @var AbstractFilter $filter
+             */
+            $filter = $filterInfo['filter'];
+            $search = $filterInfo['search'];
 
-            if (!empty($search) && null !== ($filter = $column->getFilter())) {
-                $queryBuilder->andWhere(new Comparison($column->getField(), $filter->getOperator(), $search));
+            if () {
+                $search = $queryBuilder->expr()->literal($search);
+                if (is_callable($filter->getCriteria())) {
+                    $criteria = call_user_func($filter->getCriteria(), $queryBuilder->expr(), $search);
+                } else {
+                    $criteria = new Comparison($column->getField(), $filter->getOperator(), $search);
+                }
+                
+                $queryBuilder->andWhere($criteria);
             }
         }
     }

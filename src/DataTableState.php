@@ -131,7 +131,7 @@ class DataTableState
             }
         }
     }
-    
+
     /**
      * @param ParameterBag $parameters
      */
@@ -269,7 +269,7 @@ class DataTableState
     /**
      * @return array
      */
-    public function getFilter()
+    public function getFilters()
     {
         return $this->filters;
     }
