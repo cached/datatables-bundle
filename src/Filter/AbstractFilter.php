@@ -132,7 +132,7 @@ abstract class AbstractFilter
                 'label' => null,
                 'template_html' => null,
                 'template_js' => null,
-                'operator' => 'CONTAINS',
+                'operator' => '=',
                 'criteria' => null,
             ])
             ->setAllowedTypes('type', ['null', 'string'])
