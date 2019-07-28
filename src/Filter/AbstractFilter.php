@@ -76,7 +76,7 @@ abstract class AbstractFilter
     {
         $leftExpr = $this->options['leftExpr'];
         
-        if ($leftExpr === nul) {
+        if ($leftExpr === null) {
             return $this->getField();
         }
 
