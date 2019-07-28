@@ -101,8 +101,9 @@ class DataTableState
      * Loads datatables state from a parameter bag on top of any existing settings.
      *
      * @param ParameterBag $parameters
+     * @param array $filters
      */
-    public function applyParameters(ParameterBag $parameters)
+    public function applyParameters(ParameterBag $parameters, array $filters)
     {
         $this->draw = $parameters->getInt('draw');
         $this->isCallback = true;
@@ -115,7 +116,7 @@ class DataTableState
         $this->setGlobalSearch($search['value'] ?? $this->globalSearch);
 
         $this->handleOrderBy($parameters);
-        $this->handleFilter($parameters);
+        $this->handleFilter($filters);
     }
 
     /**
@@ -133,13 +134,13 @@ class DataTableState
     }
 
     /**
-     * @param ParameterBag $parameters
+     * @param $filters
      */
-    private function handleFilter(ParameterBag $parameters)
+    private function handleFilter($filters)
     {
         foreach ($this->dataTable->getFilters() as $filter) {
-            if ($parameters->has($filter->getName())) {
-                $value = $parameters->get($filter->getName());
+            if (isset($filters[$filter->getName()])) {
+                $value = $filters[$filter->getName()];
                 
                 $this->setFilter($filter, $value);
             }

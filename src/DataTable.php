@@ -411,7 +411,7 @@ class DataTable
             if (null === $this->state) {
                 $this->state = DataTableState::fromDefaults($this);
             }
-            $this->state->applyParameters($parameters);
+            $this->state->applyParameters($parameters, $request->query->get('dtfilter'));
         }
 
         return $this;
