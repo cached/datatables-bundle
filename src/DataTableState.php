@@ -103,7 +103,7 @@ class DataTableState
      * @param ParameterBag $parameters
      * @param array $filters
      */
-    public function applyParameters(ParameterBag $parameters, array $filters)
+    public function applyParameters(ParameterBag $parameters, array $filters = [])
     {
         $this->draw = $parameters->getInt('draw');
         $this->isCallback = true;
