@@ -126,7 +126,7 @@ abstract class AbstractColumn
                 'operator' => '=',
                 'rightExpr' => null,
             ])
-            ->setAllowedTypes('label', ['null', 'string'])
+            ->setAllowedTypes('label', ['null', 'string', 'callable'])
             ->setAllowedTypes('data', ['null', 'string', 'callable'])
             ->setAllowedTypes('field', ['null', 'string'])
             ->setAllowedTypes('propertyPath', ['null', 'string'])
@@ -162,11 +162,17 @@ abstract class AbstractColumn
     }
 
     /**
-     * @return string|null
+     * @return mixed|string
      */
     public function getLabel()
     {
-        return $this->options['label'] ?? "{$this->dataTable->getName()}.columns.{$this->getName()}";
+        $label = $this->options['label'] ?? "{$this->dataTable->getName()}.columns.{$this->getName()}";
+
+        if (is_callable($label)) {
+            return call_user_func($label);
+        }
+
+        return $label;
     }
 
     /**
