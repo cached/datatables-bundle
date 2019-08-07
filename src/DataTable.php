@@ -16,6 +16,7 @@ use Omines\DataTablesBundle\Adapter\AdapterInterface;
 use Omines\DataTablesBundle\Adapter\ResultSetInterface;
 use Omines\DataTablesBundle\Column\AbstractColumn;
 use Omines\DataTablesBundle\Filter\AbstractFilter;
+use Omines\DataTablesBundle\MassAction\AbstractMassAction;
 use Omines\DataTablesBundle\DependencyInjection\Instantiator;
 use Omines\DataTablesBundle\Exception\InvalidArgumentException;
 use Omines\DataTablesBundle\Exception\InvalidConfigurationException;
@@ -82,6 +83,16 @@ class DataTable
      * @var array<string, AbstractFilter>
      */
     protected $filtersByName = [];
+
+    /**
+     * @var AbstractMassAction[]
+     */
+    protected $massActions = [];
+
+    /**
+     * @var array<string, AbstractMassAction>
+     */
+    protected $massActionsByName = [];
 
     /**
      * @var EventDispatcherInterface
@@ -207,6 +218,24 @@ class DataTable
     }
 
     /**
+     * @param AbstractMassAction $massAction
+     * @return $this
+     */
+    public function addMassAction(AbstractMassAction $massAction)
+    {
+        $name = $massAction->getName();
+
+        if (isset($this->massActionsByName[$name])) {
+            throw new InvalidArgumentException(sprintf('There already is a mass action with name "%s"', $name));
+        }
+
+        $this->massActions[] = $massAction;
+        $this->massActionsByName[$name] = $massAction;
+
+        return $this;
+    }
+
+    /**
      * Adds an event listener to an event on this DataTable.
      *
      * @param string   $eventName The name of the event to listen to
@@ -296,11 +325,11 @@ class DataTable
      */
     public function getFilterByName(string $name): AbstractFilter
     {
-        if (!isset($this->filters[$name])) {
+        if (!isset($this->filtersByName[$name])) {
             throw new InvalidArgumentException(sprintf('There is no filter named "%s', $name));
         }
 
-        return $this->filters[$name];
+        return $this->filtersByName[$name];
     }
 
     /**
@@ -317,6 +346,35 @@ class DataTable
     public function hasFilters()
     {
         return (bool)count($this->filters);
+    }
+
+    /**
+     * @param string $name
+     * @return AbstractMassAction
+     */
+    public function getMassActionByName(string $name): AbstractMassAction
+    {
+        if (!isset($this->massActionsByName[$name])) {
+            throw new InvalidArgumentException(sprintf('There is no filter named "%s', $name));
+        }
+
+        return $this->massActionsByName[$name];
+    }
+
+    /**
+     * @return array
+     */
+    public function getMassActions(): array
+    {
+        return $this->massActions;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasMassActions()
+    {
+        return (bool)count($this->massActions);
     }
 
     /**
