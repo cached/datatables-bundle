@@ -4,10 +4,25 @@
     <thead>
         <tr>
             {% for column in datatable.columns %}
-                <th>{{ column.label|trans }}</th>
+                <th>{{ column.label|trans|raw }}</th>
             {% endfor %}
         </tr>
     </thead>
     <tbody>
     </tbody>
+    {% if datatable.hasMassActions %}
+        <tfoot>
+            <tr>
+                <th colspan="{{ datatable.columns|length }}">
+                    <img src="{{ asset('bundles/datatables/img/arrow_ltr.png') }}" />&nbsp;
+                    <select id="massaction-{{ datatable.name }}" class="form-control">
+                        <option value="">-- {% trans %}choose{% endtrans %} --</option>
+                        {% for action in datatable.massActions %}
+                            <option value="{{ action.action }}">{{ action.label }}</option>
+                        {% endfor %}
+                    </select>&nbsp;<button id="massaction-submit-{{ datatable.name }}" class="btn btn-default">{% trans %}Execute{% endtrans %}</button>
+                </th>
+            </tr>
+        </tfoot>
+    {% endif %}
 </table>

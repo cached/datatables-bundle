@@ -53,6 +53,7 @@ class DataTable
         'orderCellsTop' => true,
         'stateSave' => false,
         'fixedHeader' => false,
+        'massActionHandler' => null,
     ];
 
     const DEFAULT_TEMPLATE = '@DataTables/datatable_html.html.twig';
