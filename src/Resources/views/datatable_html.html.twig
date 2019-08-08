@@ -26,3 +26,37 @@
         </tfoot>
     {% endif %}
 </table>
+{% if datatable.hasMassActions %}
+    <script>
+        jQuery(document).ready(function() {
+            jQuery(document).on('click', '#massaction-submit-{{ datatable.name }}', function(e) {
+                e.preventDefault();
+
+                let action = jQuery('#massaction-{{ datatable.name }}').val();
+                if (action === '') {
+                    return false;
+                }
+
+                let values = [];
+                jQuery.each(jQuery('.massaction-checkbox-{{ datatable.name }}:checked'), function() {
+                    values.push(jQuery(this).val());
+                });
+
+                if (values.length === 0) {
+                    return false;
+                }
+
+                jQuery.ajax({
+                    url: '{{ datatable.option('massActionHandler') }}',
+                    method: 'POST',
+                    data: {
+                        'action': action,
+                        'ids': values
+                    }
+                }).done(function(data) {
+                    window.location.href = $.fn.initDataTables.defaults.url;
+                });
+            });
+        });
+    </script>
+{% endif %}
