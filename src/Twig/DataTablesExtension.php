@@ -37,14 +37,22 @@ class DataTablesExtension extends \Twig_Extension
     {
         return [
             new \Twig_SimpleFunction('datatable_settings', function (DataTable $dataTable) {
-                return json_encode([
+                $output = [
                     'name' => $dataTable->getName(),
                     'method' => $dataTable->getMethod(),
                     'state' => $dataTable->getPersistState(),
                     'options' => [
                         'language' => $this->getLanguageSettings($dataTable),
                     ],
-                ]);
+                ];
+                
+                if ($dataTable->getOption('url')) {
+                    $output = array_merge($output, [
+                        'url' => $dataTable->getOption('url')
+                    ]);
+                }
+                
+                return json_encode($output);
             }, ['is_safe' => ['html']]),
         ];
     }
