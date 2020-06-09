@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Omines\DataTablesBundle\Adapter\Doctrine;
 
+use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -25,7 +26,6 @@ use Omines\DataTablesBundle\Column\AbstractColumn;
 use Omines\DataTablesBundle\DataTableState;
 use Omines\DataTablesBundle\Exception\InvalidConfigurationException;
 use Omines\DataTablesBundle\Exception\MissingDependencyException;
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -200,7 +200,7 @@ class ORMAdapter extends AbstractAdapter
 
         $query = $builder->getQuery();
         $event = new ORMAdapterQueryEvent($query);
-        $state->getDataTable()->getEventDispatcher()->dispatch(ORMAdapterEvents::PRE_QUERY, $event);
+        $state->getDataTable()->getEventDispatcher()->dispatch($event, ORMAdapterEvents::PRE_QUERY);
 
         foreach ($query->iterate([], $this->hydrationMode) as $result) {
             yield $entity = array_values($result)[0];

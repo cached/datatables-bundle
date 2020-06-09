@@ -52,9 +52,7 @@ class SearchCriteriaProvider implements QueryBuilderProcessorInterface
                 } else {
                     $search = $queryBuilder->expr()->literal($filter->getRightExpr($search));
                     
-                    $criteria = new Comparison($filter->getLeftExpr(), $filter->getOperator(), $search);
-
-                    $queryBuilder->andWhere($criteria);
+                    $queryBuilder->andWhere(new Comparison($filter->getLeftExpr(), $filter->getOperator(), $search));
                 }
             }
         }

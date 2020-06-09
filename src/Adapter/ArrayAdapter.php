@@ -46,16 +46,16 @@ class ArrayAdapter implements AdapterInterface
         // very basic implementation of sorting
         try {
             $oc = $state->getOrderBy()[0][0]->getName();
-            $oo = \strtolower($state->getOrderBy()[0][1]);
+            $oo = \mb_strtolower($state->getOrderBy()[0][1]);
 
             \usort($this->data, function ($a, $b) use ($oc, $oo) {
-                if ($oo === 'desc') {
+                if ('desc' === $oo) {
                     return $b[$oc] <=> $a[$oc];
                 }
 
                 return $a[$oc] <=> $b[$oc];
             });
-        }catch (\Throwable $exception) {
+        } catch (\Throwable $exception) {
             // ignore exception
         }
 
@@ -79,9 +79,6 @@ class ArrayAdapter implements AdapterInterface
     }
 
     /**
-     * @param DataTableState $state
-     * @param array $data
-     * @param array $map
      * @return \Generator
      */
     protected function processData(DataTableState $state, array $data, array $map)
@@ -99,10 +96,6 @@ class ArrayAdapter implements AdapterInterface
     }
 
     /**
-     * @param DataTableState $state
-     * @param array $result
-     * @param array $map
-     * @param string $search
      * @return array|null
      */
     protected function processRow(DataTableState $state, array $result, array $map, string $search)
