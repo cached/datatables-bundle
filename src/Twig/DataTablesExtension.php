@@ -50,18 +50,11 @@ class DataTablesExtension extends \Twig\Extension\AbstractExtension
                     ]);
                 }
 
-                if ($dataTable->getOption('paging')) {
-                    $output = array_merge($output, [
-                        'paging' => $dataTable->getOption('paging')
-                    ]);
-                }
+                $output = array_merge($output, [
+                    'paging' => $dataTable->getOption('paging'),
+                    'ordering' => $dataTable->getOption('ordering')
+                ]);
 
-                if ($dataTable->getOption('ordering')) {
-                    $output = array_merge($output, [
-                        'ordering' => $dataTable->getOption('ordering')
-                    ]);
-                }
-                
                 return json_encode($output);
             }, ['is_safe' => ['html']]),
         ];
