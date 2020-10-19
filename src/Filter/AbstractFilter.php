@@ -96,7 +96,7 @@ abstract class AbstractFilter
     }
 
     /**
-     * @return mixed
+     * @param mixed $value
      */
     public function getRightExpr($value)
     {

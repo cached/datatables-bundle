@@ -15,15 +15,17 @@ namespace Omines\DataTablesBundle;
 use Omines\DataTablesBundle\Adapter\AdapterInterface;
 use Omines\DataTablesBundle\Adapter\ResultSetInterface;
 use Omines\DataTablesBundle\Column\AbstractColumn;
-use Omines\DataTablesBundle\Filter\AbstractFilter;
-use Omines\DataTablesBundle\MassAction\AbstractMassAction;
 use Omines\DataTablesBundle\DependencyInjection\Instantiator;
 use Omines\DataTablesBundle\Exception\InvalidArgumentException;
 use Omines\DataTablesBundle\Exception\InvalidConfigurationException;
 use Omines\DataTablesBundle\Exception\InvalidStateException;
+use Omines\DataTablesBundle\Exporter\DataTableExporterManager;
+use Omines\DataTablesBundle\Traits\FilterTrait;
+use Omines\DataTablesBundle\Traits\MassActionTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -33,8 +35,10 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class DataTable
 {
+    use FilterTrait;
+    use MassActionTrait;
+
     const DEFAULT_OPTIONS = [
-        'url' => null,
         'jQueryUI' => false,
         'pagingType' => 'full_numbers',
         'lengthMenu' => [[10, 25, 50, -1], [10, 25, 50, 'All']],
@@ -61,116 +65,64 @@ class DataTable
     const SORT_ASCENDING = 'asc';
     const SORT_DESCENDING = 'desc';
 
-    /**
-     * @var AdapterInterface
-     */
+    /** @var AdapterInterface */
     protected $adapter;
 
-    /**
-     * @var AbstractColumn[]
-     */
+    /** @var AbstractColumn[] */
     protected $columns = [];
 
-    /**
-     * @var array<string, AbstractColumn>
-     */
+    /** @var array<string, AbstractColumn> */
     protected $columnsByName = [];
 
-    /**
-     * @var AbstractFilter[]
-     */
-    protected $filters = [];
-
-    /**
-     * @var array<string, AbstractFilter>
-     */
-    protected $filtersByName = [];
-
-    /**
-     * @var AbstractMassAction[]
-     */
-    protected $massActions = [];
-
-    /**
-     * @var array<string, AbstractMassAction>
-     */
-    protected $massActionsByName = [];
-
-    /**
-     * @var EventDispatcherInterface
-     */
+    /** @var EventDispatcherInterface */
     protected $eventDispatcher;
 
-    /**
-     * @var string
-     */
+    /** @var DataTableExporterManager */
+    protected $exporterManager;
+
+    /** @var string */
     protected $method = Request::METHOD_POST;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $options;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $languageFromCDN = true;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $name = 'dt';
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $persistState = 'fragment';
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $template = self::DEFAULT_TEMPLATE;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $templateParams = [];
 
-    /**
-     * @var callable
-     */
+    /** @var callable */
     protected $transformer;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $translationDomain = 'messages';
 
-    /**
-     * @var DataTableRendererInterface
-     */
+    /** @var DataTableRendererInterface */
     private $renderer;
 
-    /**
-     * @var DataTableState
-     */
+    /** @var DataTableState */
     private $state;
 
-    /**
-     * @var Instantiator
-     */
+    /** @var Instantiator */
     private $instantiator;
 
     /**
      * DataTable constructor.
-     *
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param array $options
-     * @param Instantiator|null $instantiator
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, array $options = [], Instantiator $instantiator = null)
+    public function __construct(EventDispatcherInterface $eventDispatcher, DataTableExporterManager $exporterManager, array $options = [], Instantiator $instantiator = null)
     {
         $this->eventDispatcher = $eventDispatcher;
+        $this->exporterManager = $exporterManager;
 
         $this->instantiator = $instantiator ?? new Instantiator();
 
@@ -180,9 +132,6 @@ class DataTable
     }
 
     /**
-     * @param string $name
-     * @param string $type
-     * @param array $options
      * @return $this
      */
     public function add(string $name, string $type, array $options = [])
@@ -197,42 +146,6 @@ class DataTable
 
         $this->columns[] = $column;
         $this->columnsByName[$name] = $column;
-
-        return $this;
-    }
-
-    /**
-     * @param AbstractFilter $filter
-     * @return $this
-     */
-    public function addFilter(AbstractFilter $filter)
-    {
-        $name = $filter->getName();
-
-        if (isset($this->filtersByName[$name])) {
-            throw new InvalidArgumentException(sprintf('There already is a filter with name "%s"', $name));
-        }
-
-        $this->filters[] = $filter;
-        $this->filtersByName[$name] = $filter;
-
-        return $this;
-    }
-
-    /**
-     * @param AbstractMassAction $massAction
-     * @return $this
-     */
-    public function addMassAction(AbstractMassAction $massAction)
-    {
-        $name = $massAction->getName();
-
-        if (isset($this->massActionsByName[$name])) {
-            throw new InvalidArgumentException(sprintf('There already is a mass action with name "%s"', $name));
-        }
-
-        $this->massActions[] = $massAction;
-        $this->massActionsByName[$name] = $massAction;
 
         return $this;
     }
@@ -257,7 +170,6 @@ class DataTable
 
     /**
      * @param int|string|AbstractColumn $column
-     * @param string $direction
      * @return $this
      */
     public function addOrderBy($column, string $direction = self::SORT_ASCENDING)
@@ -271,7 +183,6 @@ class DataTable
     }
 
     /**
-     * @param string $adapter
      * @return $this
      */
     public function createAdapter(string $adapter, array $options = []): self
@@ -279,18 +190,11 @@ class DataTable
         return $this->setAdapter($this->instantiator->getAdapter($adapter), $options);
     }
 
-    /**
-     * @return AdapterInterface
-     */
     public function getAdapter(): AdapterInterface
     {
         return $this->adapter;
     }
 
-    /**
-     * @param int $index
-     * @return AbstractColumn
-     */
     public function getColumn(int $index): AbstractColumn
     {
         if ($index < 0 || $index >= count($this->columns)) {
@@ -300,10 +204,6 @@ class DataTable
         return $this->columns[$index];
     }
 
-    /**
-     * @param string $name
-     * @return AbstractColumn
-     */
     public function getColumnByName(string $name): AbstractColumn
     {
         if (!isset($this->columnsByName[$name])) {
@@ -321,99 +221,26 @@ class DataTable
         return $this->columns;
     }
 
-    /**
-     * @param string $name
-     * @return AbstractFilter
-     */
-    public function getFilterByName(string $name): AbstractFilter
-    {
-        if (!isset($this->filtersByName[$name])) {
-            throw new InvalidArgumentException(sprintf('There is no filter named "%s', $name));
-        }
-
-        return $this->filtersByName[$name];
-    }
-
-    /**
-     * @return AbstractFilter[]
-     */
-    public function getFilters(): array
-    {
-        return $this->filters;
-    }
-    
-    /**
-     * @return bool
-     */
-    public function hasFilters()
-    {
-        return (bool)count($this->filters);
-    }
-
-    /**
-     * @param string $name
-     * @return AbstractMassAction
-     */
-    public function getMassActionByName(string $name): AbstractMassAction
-    {
-        if (!isset($this->massActionsByName[$name])) {
-            throw new InvalidArgumentException(sprintf('There is no filter named "%s', $name));
-        }
-
-        return $this->massActionsByName[$name];
-    }
-
-    /**
-     * @return array
-     */
-    public function getMassActions(): array
-    {
-        return $this->massActions;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasMassActions()
-    {
-        return (bool)count($this->massActions);
-    }
-
-    /**
-     * @return EventDispatcherInterface
-     */
     public function getEventDispatcher(): EventDispatcherInterface
     {
         return $this->eventDispatcher;
     }
 
-    /**
-     * @return bool
-     */
     public function isLanguageFromCDN(): bool
     {
         return $this->languageFromCDN;
     }
 
-    /**
-     * @return string
-     */
     public function getMethod(): string
     {
         return $this->method;
     }
 
-    /**
-     * @return string
-     */
     public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @return string
-     */
     public function getPersistState(): string
     {
         return $this->persistState;
@@ -427,32 +254,17 @@ class DataTable
         return $this->state;
     }
 
-    /**
-     * @return string
-     */
     public function getTranslationDomain(): string
     {
         return $this->translationDomain;
     }
 
-    /**
-     * @return array
-     */
-    public function getTemplateParams()
-    {
-        return $this->templateParams;
-    }
-
-    /**
-     * @return bool
-     */
     public function isCallback(): bool
     {
         return (null === $this->state) ? false : $this->state->isCallback();
     }
 
     /**
-     * @param Request $request
      * @return $this
      */
     public function handleRequest(Request $request): self
@@ -477,13 +289,18 @@ class DataTable
         return $this;
     }
 
-    /**
-     * @return JsonResponse
-     */
-    public function getResponse(): JsonResponse
+    public function getResponse(): Response
     {
         if (null === $this->state) {
             throw new InvalidStateException('The DataTable does not know its state yet, did you call handleRequest?');
+        }
+
+        // Server side export
+        if (null !== $this->state->getExporterName()) {
+            return $this->exporterManager
+                ->setDataTable($this)
+                ->setExporterName($this->state->getExporterName())
+                ->getResponse();
         }
 
         $resultSet = $this->getResultSet();
@@ -518,9 +335,6 @@ class DataTable
         ]);
     }
 
-    /**
-     * @return ResultSetInterface
-     */
     protected function getResultSet(): ResultSetInterface
     {
         if (null === $this->adapter) {
@@ -538,9 +352,6 @@ class DataTable
         return $this->transformer;
     }
 
-    /**
-     * @return array
-     */
     public function getOptions(): array
     {
         return $this->options;
@@ -556,8 +367,6 @@ class DataTable
     }
 
     /**
-     * @param AdapterInterface $adapter
-     * @param array|null $options
      * @return DataTable
      */
     public function setAdapter(AdapterInterface $adapter, array $options = null): self
@@ -571,7 +380,6 @@ class DataTable
     }
 
     /**
-     * @param bool $languageFromCDN
      * @return $this
      */
     public function setLanguageFromCDN(bool $languageFromCDN): self
@@ -582,7 +390,6 @@ class DataTable
     }
 
     /**
-     * @param string $method
      * @return $this
      */
     public function setMethod(string $method): self
@@ -593,7 +400,6 @@ class DataTable
     }
 
     /**
-     * @param string $persistState
      * @return $this
      */
     public function setPersistState(string $persistState): self
@@ -604,7 +410,6 @@ class DataTable
     }
 
     /**
-     * @param DataTableRendererInterface $renderer
      * @return $this
      */
     public function setRenderer(DataTableRendererInterface $renderer): self
@@ -615,7 +420,6 @@ class DataTable
     }
 
     /**
-     * @param string $name
      * @return $this
      */
     public function setName(string $name): self
@@ -629,7 +433,6 @@ class DataTable
     }
 
     /**
-     * @param string $template
      * @return $this
      */
     public function setTemplate(string $template, array $parameters = []): self
@@ -641,7 +444,6 @@ class DataTable
     }
 
     /**
-     * @param string $translationDomain
      * @return $this
      */
     public function setTranslationDomain(string $translationDomain): self
@@ -652,7 +454,6 @@ class DataTable
     }
 
     /**
-     * @param callable $formatter
      * @return $this
      */
     public function setTransformer(callable $formatter)
@@ -663,7 +464,6 @@ class DataTable
     }
 
     /**
-     * @param OptionsResolver $resolver
      * @return $this
      */
     protected function configureOptions(OptionsResolver $resolver)

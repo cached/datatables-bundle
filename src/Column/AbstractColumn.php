@@ -120,13 +120,14 @@ abstract class AbstractColumn
                 'orderField' => null,
                 'searchable' => null,
                 'globalSearchable' => null,
+                'filter' => null,
                 'className' => null,
                 'render' => null,
                 'leftExpr' => null,
                 'operator' => '=',
                 'rightExpr' => null,
             ])
-            ->setAllowedTypes('label', ['null', 'string', 'callable'])
+            ->setAllowedTypes('label', ['null', 'string'])
             ->setAllowedTypes('data', ['null', 'string', 'callable'])
             ->setAllowedTypes('field', ['null', 'string'])
             ->setAllowedTypes('propertyPath', ['null', 'string'])
@@ -135,6 +136,7 @@ abstract class AbstractColumn
             ->setAllowedTypes('orderField', ['null', 'string'])
             ->setAllowedTypes('searchable', ['null', 'boolean'])
             ->setAllowedTypes('globalSearchable', ['null', 'boolean'])
+            ->setAllowedTypes('filter', ['null', AbstractFilter::class])
             ->setAllowedTypes('className', ['null', 'string'])
             ->setAllowedTypes('render', ['null', 'string', 'callable'])
             ->setAllowedTypes('operator', ['string'])
@@ -162,17 +164,11 @@ abstract class AbstractColumn
     }
 
     /**
-     * @return mixed|string
+     * @return string|null
      */
     public function getLabel()
     {
-        $label = $this->options['label'] ?? "{$this->dataTable->getName()}.columns.{$this->getName()}";
-
-        if (is_callable($label)) {
-            return call_user_func($label);
-        }
-
-        return $label;
+        return $this->options['label'] ?? "{$this->dataTable->getName()}.columns.{$this->getName()}";
     }
 
     /**
@@ -222,7 +218,15 @@ abstract class AbstractColumn
     {
         return $this->options['orderable'] ?? !empty($this->getOrderField());
     }
-    
+
+    /**
+     * @return AbstractFilter
+     */
+    public function getFilter()
+    {
+        return $this->options['filter'];
+    }
+
     /**
      * @return string|null
      */

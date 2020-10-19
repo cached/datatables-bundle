@@ -8,7 +8,7 @@ framework:
         strict_requirements: ~
     default_locale: 'en'
     fragments: ~
-    translator: { fallbacks: [en] }
+    translator: { fallbacks: [] }
     http_method_override: true
     test: ~
     profiler:
@@ -42,6 +42,7 @@ doctrine:
 twig:
     debug: '%kernel.debug%'
     strict_variables: '%kernel.debug%'
+    exception_controller: null
 
 datatables:
     options:

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.1/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          backupGlobals="false"
          colors="true"
          bootstrap="tests/phpunit-bootstrap.php">
@@ -14,7 +14,7 @@
         <ini name="memory_limit" value="-1" />
 
         <env name="SHELL_VERBOSITY" value="-1" />
-        <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak_vendors" />
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[self]=0" />
         <env name="KERNEL_CLASS" value="\Tests\Fixtures\AppKernel" />
     </php>
 
@@ -29,4 +29,8 @@
             <directory>./src/</directory>
         </whitelist>
     </filter>
+
+    <listeners>
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+    </listeners>
 </phpunit>

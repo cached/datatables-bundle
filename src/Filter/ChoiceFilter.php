@@ -13,6 +13,26 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class ChoiceFilter extends AbstractFilter
 {
     /**
+     * @return $this
+     */
+    protected function configureOptions(OptionsResolver $resolver)
+    {
+        parent::configureOptions($resolver);
+
+        $resolver
+            ->setDefaults([
+                'template_html' => '@DataTables/filters/select.html.twig',
+                'template_js' => '@DataTables/filters/select.js.twig',
+                'placeholder' => null,
+                'choices' => [],
+            ])
+            ->setAllowedTypes('placeholder', ['null', 'string'])
+            ->setAllowedTypes('choices', ['array']);
+
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getPlaceholder()
@@ -33,26 +53,6 @@ class ChoiceFilter extends AbstractFilter
      */
     public function isValidValue($value): bool
     {
-        return array_key_exists($value, $this->choices);
-    }
-
-    /**
-     * @param OptionsResolver $resolver
-     * @return $this|AbstractFilter
-     */
-    protected function configureOptions(OptionsResolver $resolver)
-    {
-        parent::configureOptions($resolver);
-
-        $resolver
-            ->setDefaults([
-                'template_html' => '@DataTables/filters/select.html.twig',
-                'placeholder' => null,
-                'choices' => [],
-            ])
-            ->setAllowedTypes('placeholder', ['null', 'string'])
-            ->setAllowedTypes('choices', ['array']);
-
-        return $this;
+        return array_key_exists($value, $this->options['choices']);
     }
 }
