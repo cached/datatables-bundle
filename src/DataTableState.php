@@ -23,55 +23,41 @@ use Symfony\Component\HttpFoundation\ParameterBag;
  */
 class DataTableState
 {
-    /**
-     * @var DataTable
-     */
+    /** @var DataTable */
     private $dataTable;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     private $draw = 0;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     private $start = 0;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     private $length = -1;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $globalSearch = '';
 
-    /**
-     * @var array
-     */
+    /** @var array */
+    private $searchColumns = [];
+
+    /** @var array */
+    private $orderBy = [];
+
+    /** @var bool */
+    private $isInitial = false;
+
+    /** @var bool */
+    private $isCallback = false;
+
+    /** @var string */
+    private $exporterName = null;
+
+    /** @var array */
     private $filters = [];
 
     /**
-     * @var array
-     */
-    private $orderBy = [];
-
-    /**
-     * @var bool
-     */
-    private $isInitial = false;
-
-    /**
-     * @var bool
-     */
-    private $isCallback = false;
-
-    /**
      * DataTableState constructor.
-     *
-     * @param DataTable $dataTable
      */
     public function __construct(DataTable $dataTable)
     {
@@ -81,7 +67,6 @@ class DataTableState
     /**
      * Constructs a state based on the default options.
      *
-     * @param DataTable $dataTable
      * @return DataTableState
      */
     public static function fromDefaults(DataTable $dataTable)
@@ -99,15 +84,13 @@ class DataTableState
 
     /**
      * Loads datatables state from a parameter bag on top of any existing settings.
-     *
-     * @param ParameterBag $parameters
-     * @param array $filters
      */
     public function applyParameters(ParameterBag $parameters, array $filters = [])
     {
         $this->draw = $parameters->getInt('draw');
         $this->isCallback = true;
         $this->isInitial = $parameters->getBoolean('_init', false);
+        $this->exporterName = $parameters->get('_exporter');
 
         $this->start = (int) $parameters->get('start', $this->start);
         $this->length = (int) $parameters->get('length', $this->length);
@@ -119,9 +102,6 @@ class DataTableState
         $this->handleFilter($filters);
     }
 
-    /**
-     * @param ParameterBag $parameters
-     */
     private function handleOrderBy(ParameterBag $parameters)
     {
         if ($parameters->has('order')) {
@@ -133,62 +113,44 @@ class DataTableState
         }
     }
 
-    /**
-     * @param $filters
-     */
-    private function handleFilter($filters)
+    private function handleSearch(ParameterBag $parameters)
     {
-        foreach ($this->dataTable->getFilters() as $filter) {
-            if (isset($filters[$filter->getName()])) {
-                $value = $filters[$filter->getName()];
-                
-                $this->setFilter($filter, $value);
+        foreach ($parameters->get('columns', []) as $key => $search) {
+            $column = $this->dataTable->getColumn((int) $key);
+            $value = $this->isInitial ? $search : $search['search']['value'];
+
+            if ($column->isSearchable() && ('' !== trim($value))) {
+                $this->setColumnSearch($column, $value);
             }
         }
     }
 
-    /**
-     * @return bool
-     */
     public function isInitial(): bool
     {
         return $this->isInitial;
     }
 
-    /**
-     * @return bool
-     */
     public function isCallback(): bool
     {
         return $this->isCallback;
     }
 
-    /**
-     * @return DataTable
-     */
     public function getDataTable(): DataTable
     {
         return $this->dataTable;
     }
 
-    /**
-     * @return int
-     */
     public function getDraw(): int
     {
         return $this->draw;
     }
 
-    /**
-     * @return int
-     */
     public function getStart(): int
     {
         return $this->start;
     }
 
     /**
-     * @param int $start
      * @return $this
      */
     public function setStart(int $start)
@@ -198,16 +160,12 @@ class DataTableState
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getLength(): int
     {
         return $this->length;
     }
 
     /**
-     * @param int $length
      * @return $this
      */
     public function setLength(int $length)
@@ -217,16 +175,12 @@ class DataTableState
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getGlobalSearch(): string
     {
         return $this->globalSearch;
     }
 
     /**
-     * @param string $globalSearch
      * @return $this
      */
     public function setGlobalSearch(string $globalSearch)
@@ -237,8 +191,6 @@ class DataTableState
     }
 
     /**
-     * @param AbstractColumn $column
-     * @param string $direction
      * @return $this
      */
     public function addOrderBy(AbstractColumn $column, string $direction = DataTable::SORT_ASCENDING)
@@ -248,16 +200,12 @@ class DataTableState
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getOrderBy(): array
     {
         return $this->orderBy;
     }
 
     /**
-     * @param array $orderBy
      * @return $this
      */
     public function setOrderBy(array $orderBy = []): self
@@ -265,6 +213,46 @@ class DataTableState
         $this->orderBy = $orderBy;
 
         return $this;
+    }
+
+    /**
+     * Returns an array of column-level searches.
+     */
+    public function getSearchColumns(): array
+    {
+        return $this->searchColumns;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setColumnSearch(AbstractColumn $column, string $search, bool $isRegex = false): self
+    {
+        $this->searchColumns[$column->getName()] = ['column' => $column, 'search' => $search, 'regex' => $isRegex];
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExporterName()
+    {
+        return $this->exporterName;
+    }
+
+    /**
+     * @param $filters
+     */
+    private function handleFilter($filters)
+    {
+        foreach ($this->dataTable->getFilters() as $filter) {
+            if (isset($filters[$filter->getName()])) {
+                $value = $filters[$filter->getName()];
+
+                $this->setFilter($filter, $value);
+            }
+        }
     }
 
     /**
@@ -283,7 +271,7 @@ class DataTableState
     public function setFilter(AbstractFilter $filter, string $search)
     {
         $this->filters[$filter->getName()] = ['filter' => $filter, 'search' => $search];
-        
+
         return $this;
     }
 }

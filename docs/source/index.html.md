@@ -13,7 +13,7 @@ search: true
 # Introduction
 
 This bundle provides convenient integration of the popular [DataTables](https://datatables.net/) jQuery library
-for realtime AJAX tables in your Symfony 3.3+ or 4.0+ application.
+for realtime AJAX tables in your Symfony 4.1+ application.
 
 Designed to be fully pluggable there are no limits to the data sources you can display through this library, nor
 are there any bounds on how they are displayed. In full *'batteries included but replaceable'* philosophy there are
@@ -25,7 +25,7 @@ Recommended way of installing this library is through [Composer](https://getcomp
 
 <code>composer require omines/datatables-bundle</code>
 
-Please ensure you are using Symfony 3.3 or later. If you are using Symfony Flex a recipe is included in the contrib
+Please ensure you are using Symfony 4.1 or later. If you are using Symfony Flex a recipe is included in the contrib
 repository, providing automatic installation and configuration.
 
 ```php?start_inline=true
@@ -67,15 +67,13 @@ The code snippets here should get you started quickly, including jQuery 3. For m
 ```php?start_inline=true
 use Omines\DataTablesBundle\Adapter\ArrayAdapter;
 use Omines\DataTablesBundle\Column\TextColumn;
-use Omines\DataTablesBundle\Controller\DataTablesTrait;
+use Omines\DataTablesBundle\DataTableFactory;
 
 class MyController extends Controller
 {
-    use DataTablesTrait;
-    
-    public function showAction(Request $request)
+    public function showAction(Request $request, DataTableFactory $dataTableFactory)
     {
-        $table = $this->createDataTable()
+        $table = $dataTableFactory->create()
             ->add('firstName', TextColumn::class)
             ->add('lastName', TextColumn::class)
             ->createAdapter(ArrayAdapter::class, [
@@ -94,8 +92,8 @@ class MyController extends Controller
 ```
 This trivial bit of code in your controller prepares a fully functional DataTables instance for use.
 
-The optional <code>DataTablesTrait</code> is included to expose convenience methods in your controller for
-easy instantiation. The `createDataTable` function is used in this example. On the DataTable instance we 
+The <code>DataTableFactory</code> service is injected to expose convenience methods in your controller
+for easy instantiation. The `create` function is used in this example. On the DataTable instance we 
 add 2 columns of type `TextColumn`, and we bind it to an adapter providing a static array as the
 source of the data.
 
@@ -107,11 +105,9 @@ otherwise we render a template with the table provided as a parameter.
 
 ## Controller setup
 
-When using <code>DataTablesTrait</code> it is assumed that the <code>DataTableFactory</code> trait is available
-in the controller's <code>$container</code>. When using Symfony's legacy <code>Controller</code> base class this
-is true. If using <code>AbstractController</code> instead, which is currently recommended practice, ensure
-you subscribe to the <code>DataTableFactory</code> service yourself. Alternatively you can bypass the convenience
-trait and inject the service via regular constructor injection.
+Previous versions of this bundle offered a <code>DataTablesTrait</code> which assumed that the
+<code>DataTableFactory</code> class was available in the controller's <code>$container</code>. As this
+is deprecated in current versions of Symfony you should use dependency injection instead.
 
 ## Frontend code
 
@@ -283,7 +279,7 @@ interaction based on internal changes in this bundle and/or Doctrine ORM.
 ```php?start_inline=1
 $table->createAdapter(ORMAdapter::class, [
     'entity' => Employee::class,
-    'criteria' => [
+    'query' => [
         function (QueryBuilder $builder) {
             $builder->andWhere($builder->expr()->like('c.name', ':test'))->setParameter('test', '%ny 2%');
         },
@@ -383,7 +379,7 @@ $table
     ->add('lastName', TextColumn::class, ['render' => '<strong>%s</strong>', 'raw' => true])
     ->add('email', TextColumn::class, ['render' => function($value, $context) {
         return sprintf('<a href="%s">%s</a>', $value, $value);
-    })
+    }])
 ;
 ```
 
@@ -448,6 +444,7 @@ result. If data of other types is encountered automatic conversion is attempted 
 
 Option | Type | Description
 ------ | ---- | -----------
+createFromFormat | string | Custom format for creating DateTime objects from values. A format string accepted by [`DateTime::createFromFormat()`](https://www.php.net/manual/en/datetime.createfromformat.php) function.
 format | string | A date format string as accepted by the [`date()`](http://php.net/manual/en/function.date.php) function. Default `'c'`.
 nullValue | string | Raw string to display for null values. Defaults to the empty string.
 
@@ -492,6 +489,33 @@ level context respectively.
 Option | Type | Description
 ------ | ---- | -----------
 template | string | Template path resolvable by the Symfony templating component. Required without default.
+
+<aside class="warning">Keep in mind that for most simple use cases a decorated TextColumn will perform better than a full Twig template per row.</aside>
+
+## TwigStringColumn
+
+```php?start_inline=1
+$table->add('link', TwigStringColumn::class, [
+    'template' => '<a href="{{ url(\'employee.edit\', {id: row.id}) }}">{{ row.firstName }} {{ row.lastName }}</a>',
+])
+```
+
+This column type allows you to inline a Twig template as a string used to render the column's cells. The
+template is rendered using the main application context by injecting the main Twig service.
+Additionally, the `value` and `row` parameters are being filled by the cell value and the row
+level context respectively.
+
+This column type requires `StringLoaderExtension` to be [enabled in your Twig environment](https://symfony.com/doc/4.4/reference/dic_tags.html#twig-extension).
+
+```yaml
+services:
+    Twig\Extension\StringLoaderExtension:
+        tags: [twig.extension]
+```
+
+Option | Type | Description
+------ | ---- | -----------
+template | string | Template content resolvable by the Symfony templating component. Required without default.
 
 <aside class="warning">Keep in mind that for most simple use cases a decorated TextColumn will perform better than a full Twig template per row.</aside>
 

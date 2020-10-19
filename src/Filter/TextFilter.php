@@ -14,24 +14,8 @@ namespace Omines\DataTablesBundle\Filter;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-/**
- * Class TextFilter
- * @package Omines\DataTablesBundle\Filter
- */
 class TextFilter extends AbstractFilter
 {
-    /**
-     * @return string
-     */
-    public function getPlaceholder()
-    {
-        return $this->options['placeholder'];
-    }
-
-    /**
-     * @param OptionsResolver $resolver
-     * @return $this|AbstractFilter
-     */
     protected function configureOptions(OptionsResolver $resolver)
     {
         parent::configureOptions($resolver);
@@ -46,9 +30,25 @@ class TextFilter extends AbstractFilter
                     return '%' . $value . '%';
                 }
             ])
-            ->setAllowedTypes('placeholder', ['null', 'string'])
-        ;
+            ->setAllowedTypes('placeholder', ['null', 'string']);
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPlaceholder()
+    {
+        return $this->options['placeholder'];
+    }
+
+    /**
+     * @param $value
+     * @return bool
+     */
+    public function isValidValue($value): bool
+    {
+        return true;
     }
 }

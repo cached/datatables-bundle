@@ -33,16 +33,10 @@ class SearchCriteriaProvider implements QueryBuilderProcessorInterface
         $this->processGlobalSearch($queryBuilder, $state);
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @param DataTableState $state
-     */
     private function processFilters(QueryBuilder $queryBuilder, DataTableState $state)
     {
         foreach ($state->getFilters() as $filterInfo) {
-            /**
-             * @var AbstractFilter $filter
-             */
+            /** @var AbstractFilter $filter */
             $filter = $filterInfo['filter'];
             $search = $filterInfo['search'];
 
@@ -51,17 +45,32 @@ class SearchCriteriaProvider implements QueryBuilderProcessorInterface
                     call_user_func($filter->getCriteria(), $queryBuilder, $search);
                 } else {
                     $search = $queryBuilder->expr()->literal($filter->getRightExpr($search));
-                    
+
                     $queryBuilder->andWhere(new Comparison($filter->getLeftExpr(), $filter->getOperator(), $search));
                 }
             }
         }
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @param DataTableState $state
-     */
+    private function processSearchColumns(QueryBuilder $queryBuilder, DataTableState $state)
+    {
+        foreach ($state->getSearchColumns() as $searchInfo) {
+            /** @var AbstractColumn $column */
+            $column = $searchInfo['column'];
+            $search = $searchInfo['search'];
+
+            if ('' !== trim($search)) {
+                if (null !== ($filter = $column->getFilter())) {
+                    if (!$filter->isValidValue($search)) {
+                        continue;
+                    }
+                }
+                $search = $queryBuilder->expr()->literal($search);
+                $queryBuilder->andWhere(new Comparison($column->getField(), $column->getOperator(), $search));
+            }
+        }
+    }
+
     private function processGlobalSearch(QueryBuilder $queryBuilder, DataTableState $state)
     {
         if (!empty($globalSearch = $state->getGlobalSearch())) {
