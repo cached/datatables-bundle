@@ -39,7 +39,7 @@
                 return null;
             }
         };
-
+console.log(config.url);
         return new Promise((fulfill, reject) => {
             // Perform initial load
             $.ajax(typeof config.url === 'function' ? config.url(null) : config.url, {
