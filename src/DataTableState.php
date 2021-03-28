@@ -268,7 +268,7 @@ class DataTableState
      * @param string $search
      * @return $this
      */
-    public function setFilter(AbstractFilter $filter, string $search)
+    public function setFilter(AbstractFilter $filter, $search)
     {
         $this->filters[$filter->getName()] = ['filter' => $filter, 'search' => $search];
 
