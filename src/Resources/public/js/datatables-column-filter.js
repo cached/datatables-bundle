@@ -3,12 +3,13 @@
  * @param {*} parameter 
  * @param {*} value 
  */
-function addOrUpdateUriParameter(uri, parameter, value) {
+function addOrUpdateUriParameter(uri, parameter, value, isMultiple) {
+    var isMultipleQuery = isMultiple || false;
     var new_url = normalizeAmpersand(uri);
     
     new_url = URI(new_url).normalizeQuery();
 
-    if (new_url.hasQuery(parameter)) {
+    if (!isMultipleQuery && new_url.hasQuery(parameter)) {
         new_url.removeQuery(parameter);
     }
 
